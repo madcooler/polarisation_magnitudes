@@ -19,8 +19,13 @@
 
 double data[8]  ={0,0,0,0,0,0,0,0};
 double data_p[8]={0,0,0,0,0,0,0,0};
+
+// maximum magnitude
 double maxMag = 0;
+
+// unsigned magnitude
 double originMag = 0;
+
 int    channel = -1;
 
 
@@ -44,137 +49,119 @@ void getIntensity(
     }
 }
 
-
-
 void readFile(
-    ART_GV          *  art_gv,
-    ArnFileImage    *  inputFileImage,
-    IVec2D             size,
-    id                 xOpt,
-    id                 yOpt,
-    //ArStokesVector  *  sv  ,
-    double          *  valueI
+    ART_GV                  *  art_gv,
+    ArnFileImage            *  inputFileImage,
+    ArnPlainImage           *  lightAlphaImage,
+    ArnLightAlphaImage      *  lightAlphaLine,
+    IVec2D                     size,
+    int                        xPos,
+    int                        yPos,
+    double                  *  valueI
     )
 
 {
 
 if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
     {
-        ArfARTRAW  * rawImage =
-            (ArfARTRAW *) inputFileImage->imageFile;
+//        ArfARTRAW  * rawImage =
+//            (ArfARTRAW *) inputFileImage->imageFile;
+//
+//        ArSpectrumType  rawContentType = [ rawImage fileColourType ];
+//
+//        //   Check if the current ISR is already set to match the contents
+//        //   of the RAW file
+//
+//        if ( rawContentType != art_isr( art_gv ) )
+//        {
+//            //   If they do not match...
+//
+//            [ ART_GLOBAL_REPORTER beginAction
+//                :   "automatically switching ISR to match ARTRAW contents"
+//                ];
+//
+//            char  * newInputFileName;
+//
+//            arstring_s_copy_s(
+//                  [ inputFileImage fileName ],
+//                & newInputFileName
+//                );
+//
+//            [ ART_GLOBAL_REPORTER printf
+//                :   "Default ISR was : %s\n"
+//                ,   arspectrumtype_name( art_isr( art_gv ) )
+//                ];
+//
+//            [ ART_GLOBAL_REPORTER printf
+//                :   "ARTRAW content is : %s\n"
+//                ,   arspectrumtype_name( rawContentType )
+//                ];
+//
+//            if ( rawContentType == arspectrum_ciexyz )
+//                rawContentType = arspectrum_ut_rgb;
+//
+//            if ( rawContentType == arspectrum_ciexyz_polarisable )
+//                rawContentType = arspectrum_ut_rgb_polarisable;
+//
+//            [ ART_GLOBAL_REPORTER printf
+//                :   "ISR will be set as: %s\n"
+//                ,   arspectrumtype_name( rawContentType )
+//                ];
+//
+//            art_set_isr( art_gv, rawContentType );
+//
+//            [ ART_GLOBAL_REPORTER printf
+//                :   "ISR is now set to : %s\n"
+//                ,   arspectrumtype_name( art_isr( art_gv ) )
+//                ];
+//
+//            [ ART_GLOBAL_REPORTER printf
+//                :   "Re-reading raw image...\n"
+//                ];
+//
+//            inputFileImage =
+//                [ FILE_IMAGE
+//                    :   newInputFileName
+//                    ];
+//
+//            FREE_ARRAY( newInputFileName );
+//
+//            [ ART_GLOBAL_REPORTER printf
+//                :   "Done.\n"
+//                ];
+//
+//            [ ART_GLOBAL_REPORTER endAction ];
+//        }
 
-        ArSpectrumType  rawContentType = [ rawImage fileColourType ];
-
-        //   Check if the current ISR is already set to match the contents
-        //   of the RAW file
-
-        if ( rawContentType != art_isr( art_gv ) )
-        {
-            //   If they do not match...
-
-            [ ART_GLOBAL_REPORTER beginAction
-                :   "automatically switching ISR to match ARTRAW contents"
-                ];
-
-            char  * newInputFileName;
-
-            arstring_s_copy_s(
-                  [ inputFileImage fileName ],
-                & newInputFileName
-                );
-
-            [ ART_GLOBAL_REPORTER printf
-                :   "Default ISR was : %s\n"
-                ,   arspectrumtype_name( art_isr( art_gv ) )
-                ];
-
-            [ ART_GLOBAL_REPORTER printf
-                :   "ARTRAW content is : %s\n"
-                ,   arspectrumtype_name( rawContentType )
-                ];
-
-            if ( rawContentType == arspectrum_ciexyz )
-                rawContentType = arspectrum_ut_rgb;
-
-            if ( rawContentType == arspectrum_ciexyz_polarisable )
-                rawContentType = arspectrum_ut_rgb_polarisable;
-
-            [ ART_GLOBAL_REPORTER printf
-                :   "ISR will be set as: %s\n"
-                ,   arspectrumtype_name( rawContentType )
-                ];
-
-            art_set_isr( art_gv, rawContentType );
-
-            [ ART_GLOBAL_REPORTER printf
-                :   "ISR is now set to : %s\n"
-                ,   arspectrumtype_name( art_isr( art_gv ) )
-                ];
-
-            [ ART_GLOBAL_REPORTER printf
-                :   "Re-reading raw image...\n"
-                ];
-
-            inputFileImage =
-                [ FILE_IMAGE
-                    :   newInputFileName
-                    ];
-
-            FREE_ARRAY( newInputFileName );
-
-            [ ART_GLOBAL_REPORTER printf
-                :   "Done.\n"
-                ];
-
-            [ ART_GLOBAL_REPORTER endAction ];
-        }
-
-        ArnPlainImage  * lightAlphaImage =
-            [ ALLOC_OBJECT(ArnLightAlphaImage)
-                initWithSize
-                :   size
-                ];
-
-        ArnLightAlphaImage  * lightAlphaLine =
-            [ ALLOC_OBJECT(ArnLightAlphaImage)
-                initWithSize
-                :   IVEC2D(XC(size),1)
-                ];
-
+        
+        
         [ inputFileImage getPlainImage
             :   IPNT2D( 0, 0 )
             :   lightAlphaImage
             ];
 
         [ lightAlphaImage getPlainImage
-            :   IPNT2D( 0, [ yOpt integerValue ] )
+            :   IPNT2D( 0, yPos )
             :   lightAlphaLine
             ];
 
         [ ART_GLOBAL_REPORTER beginAction
             :   "extracting pixel information at location ( %ld | %ld ):\n"
-            ,   [ xOpt integerValue ]
-            ,   [ yOpt integerValue ]
+            ,   xPos
+            ,   yPos
             ];
 
         ArLightAlpha  * value =
-            lightAlphaLine->data[ [ xOpt integerValue ] ];
+            lightAlphaLine->data[ xPos ];
 
-        printf("\n");
         
         ArStokesVector * sv = arstokesvector_alloc(art_gv);
-//        
-//        arlightalpha_l_init_l(art_gv, value, light);
 
         arlightalpha_l_to_sv(art_gv, value, sv);
         
-//        arlightalpha_l_debugprintf(
-//            art_gv,
-//            value
-//            );
-        //arstokesvector_sv_debugprintf(art_gv, sv);
-        
         getIntensity(art_gv,sv,valueI);
+        
+        arstokesvector_free(art_gv, sv);
         
         [ ART_GLOBAL_REPORTER endAction ];
     }
@@ -198,20 +185,20 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
             ];
 
         [ ciexyzAlphaImage getPlainImage
-            :   IPNT2D( 0, [ yOpt integerValue ] )
+            :   IPNT2D( 0, yPos )
             :   ciexyzAlphaLine
             ];
 
         [ ART_GLOBAL_REPORTER beginAction
             :   "pixel information at location ( %ld | %ld ):\n"
-            ,   [ xOpt integerValue ]
-            ,   [ yOpt integerValue ]
+            ,   xPos
+            ,   yPos
             ];
 
         ArCIEXYZA  * value =
-            & ciexyzAlphaLine->data[ [ xOpt integerValue ] ];
+            & ciexyzAlphaLine->data[ xPos ];
 
-        printf("\n");
+//        printf("\n");
 
         xyza_c_debugprintf(
             art_gv,
@@ -238,15 +225,15 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
 
         //  3x3 average is only done if we are sufficiently far from the border
         
-        if (    [ xOpt integerValue ] > 0
-             && [ yOpt integerValue ] > 0
-             && [ xOpt integerValue ] < XC( size ) - 1
-             && [ yOpt integerValue ] < YC( size ) - 1 )
+        if (    xPos > 0
+             && yPos > 0
+             && xPos < XC( size ) - 1
+             && yPos < YC( size ) - 1 )
         {
             printf(
-                "\n3x3 average around location ( %ld | %ld ):\n",
-                [ xOpt integerValue ],
-                [ yOpt integerValue ]
+                "\n3x3 average around location ( %d | %d ):\n",
+                xPos,
+                yPos
                 );
 
             avgLine[4] =
@@ -256,7 +243,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
             
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] - 1 )
+                :   IPNT2D( 0, yPos - 1 )
                 :   avgLine[4]
                 ];
 
@@ -270,7 +257,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
 
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] + 1 )
+                :   IPNT2D( 0, yPos + 1 )
                 :   avgLine[6]
                 ];
             
@@ -282,7 +269,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                 for ( int y = 4; y < 7; y++)
                 {
                     ArCIEXYZA  * avgValue =
-                        & avgLine[y]->data[ [ xOpt integerValue ] + x];
+                        & avgLine[y]->data[ xPos + x];
                     
                     ARCIEXYZA_X(avg) += ARCIEXYZA_X(*avgValue);
                     ARCIEXYZA_Y(avg) += ARCIEXYZA_Y(*avgValue);
@@ -315,15 +302,15 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
         
         //  5x5 average is only done if we are sufficiently far from the border
         
-        if (    [ xOpt integerValue ] > 1
-             && [ yOpt integerValue ] > 1
-             && [ xOpt integerValue ] < XC( size ) - 2
-             && [ yOpt integerValue ] < YC( size ) - 2 )
+        if (    xPos > 1
+             && yPos > 1
+             && xPos < XC( size ) - 2
+             && yPos < YC( size ) - 2 )
         {
             printf(
-                "\n5x5 average around location ( %ld | %ld ):\n",
-                [ xOpt integerValue ],
-                [ yOpt integerValue ]
+                "\n5x5 average around location ( %d | %d ):\n",
+                xPos,
+                yPos
                 );
 
             avgLine[3] =
@@ -333,7 +320,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
             
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] - 2 )
+                :   IPNT2D( 0, yPos - 2 )
                 :   avgLine[3]
                 ];
 
@@ -344,7 +331,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
 
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] + 2 )
+                :   IPNT2D( 0, yPos + 2 )
                 :   avgLine[7]
                 ];
             
@@ -355,7 +342,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                 for ( int y = 3; y < 8; y++)
                 {
                     ArCIEXYZA  * avgValue =
-                        & avgLine[y]->data[ [ xOpt integerValue ] + x];
+                        & avgLine[y]->data[ xPos + x];
                     
                     ARCIEXYZA_X(avg) += ARCIEXYZA_X(*avgValue);
                     ARCIEXYZA_Y(avg) += ARCIEXYZA_Y(*avgValue);
@@ -387,15 +374,15 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
         }
         //  11x11 average is only done if we are sufficiently far from the border
         
-        if (    [ xOpt integerValue ] > 4
-             && [ yOpt integerValue ] > 4
-             && [ xOpt integerValue ] < XC( size ) - 5
-             && [ yOpt integerValue ] < YC( size ) - 5 )
+        if (    xPos > 4
+             && yPos > 4
+             && xPos < XC( size ) - 5
+             && yPos < YC( size ) - 5 )
         {
             printf(
                 "\n11x11 average around location ( %ld | %ld ):\n",
-                [ xOpt integerValue ],
-                [ yOpt integerValue ]
+                xPos,
+                yPos
                 );
 
             avgLine[0] =
@@ -405,7 +392,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
             
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] - 5 )
+                :   IPNT2D( 0, yPos - 5 )
                 :   avgLine[0]
                 ];
 
@@ -416,7 +403,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
             
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] - 4 )
+                :   IPNT2D( 0, yPos - 4 )
                 :   avgLine[1]
                 ];
 
@@ -427,7 +414,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
             
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] - 3 )
+                :   IPNT2D( 0, yPos - 3 )
                 :   avgLine[2]
                 ];
 
@@ -438,7 +425,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
 
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] + 3 )
+                :   IPNT2D( 0, yPos + 3 )
                 :   avgLine[8]
                 ];
             
@@ -449,7 +436,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
 
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] + 4 )
+                :   IPNT2D( 0, yPos + 4 )
                 :   avgLine[9]
                 ];
             
@@ -460,7 +447,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                     ];
 
             [ ciexyzAlphaImage getPlainImage
-                :   IPNT2D( 0, [ yOpt integerValue ] + 5 )
+                :   IPNT2D( 0, yPos + 5 )
                 :   avgLine[10]
                 ];
             
@@ -471,7 +458,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
                 for ( int y = 0; y < 11; y++)
                 {
                     ArCIEXYZA  * avgValue =
-                        & avgLine[y]->data[ [ xOpt integerValue ] + x];
+                        & avgLine[y]->data[ xPos + x];
                     
                     ARCIEXYZA_X(avg) += ARCIEXYZA_X(*avgValue);
                     ARCIEXYZA_Y(avg) += ARCIEXYZA_Y(*avgValue);
@@ -523,18 +510,45 @@ int polarmag(
     id  xOpt =
         [ INTEGER_OPTION
             :   "x"
-            :   "x"
+            :   "xstart"
             :   "<x coord>"
-            :   "x coord of probe pixel"
+            :   "x start pixel"
             ];
+    
+    id  xEndOpt =
+        [ INTEGER_OPTION
+            :   "xend"
+            :   "xend"
+            :   "<x coord>"
+            :   "x end pixel"
+            ];
+
 
     id  yOpt =
         [ INTEGER_OPTION
-            :   "y"
-            :   "y"
+            :   "ystart"
+            :   "ystart"
             :   "<y coord>"
-            :   "y coord of probe pixel"
+            :   "y start pixel"
             ];
+    
+    id  yEndOpt =
+        [ INTEGER_OPTION
+            :   "yend"
+            :   "yend"
+            :   "<y coord>"
+            :   "x end pixel"
+            ];
+
+    
+    id  stepOpt =
+        [ INTEGER_OPTION
+            :   "step"
+            :   "step"
+            :   "<step>"
+            :   "sampling step"
+            ];
+
 
     ART_SINGLE_INPUT_FILE_APPLICATION_STARTUP(
         "polarisation_difference_imageprobe",
@@ -579,21 +593,52 @@ int polarmag(
             ,   [ [ inputFileImage dataImageClass ] cStringClassName ]
             );
     
-      double averageMag = 0;
-//    for(int k = 210 ; k < XC( size ); k++)
-//        for(int l = 210 ; l < XC( size ); l++)
+    int xs = [xOpt integerValue];
+    int xe = [xEndOpt integerValue];
+    
+    int ys = [yOpt integerValue];
+    int ye = [yEndOpt integerValue];
+
+    
+    int step = [stepOpt integerValue];
+    
+    ArnPlainImage  * lightAlphaImage =
+            [ ALLOC_OBJECT(ArnLightAlphaImage)
+                initWithSize
+                :   size
+                ];
+
+    ArnLightAlphaImage  * lightAlphaLine =
+            [ ALLOC_OBJECT(ArnLightAlphaImage)
+                initWithSize
+                :   IVEC2D(XC(size),1)
+                ];
+    
+    double averageMag = 0;
+    
+    FILE * dataFile ;
+    char dataFileName[50] = "";
+        
+    strcat(dataFileName,"diff_mag.txt");
+    
+    dataFile = fopen(dataFileName, "w");
+    
+    
+    
+    for(int k = xs; k < xe; k = k + step)
+        for(int l = ys ; l < ye; l = l + step)
+    
+//    for(int k = 250 ; k < XC( size ); k = k + step)
+//        for(int l = 250 ; l < XC( size ); l = l + step)
         {
             
-            //[ yOpt integerValue ] = l;
-            //[ xOpt integerValue ] = k;
-            
-//            [xOpt initWithInt:k];
-//            [xOpt initWithInt:l];
-//            readFile(art_gv, inputFileImage,    size,  k,   l , data  );
-//            readFile(art_gv, inputFileImage_p,  size,  k,   l , data_p);
-            readFile(art_gv, inputFileImage,    size,  xOpt,   yOpt , data  );
-            readFile(art_gv, inputFileImage_p,  size,  xOpt,   yOpt , data_p);
+            readFile(art_gv, inputFileImage,   lightAlphaImage, lightAlphaLine, size,  k,   l , data  );
+            readFile(art_gv, inputFileImage_p, lightAlphaImage, lightAlphaLine, size,  k,   l , data_p);
 
+            averageMag = 0;
+            maxMag     = 0;
+            originMag  = 0;
+            channel    = 0;
             
             double magnitude[8];
             for (int i = 0; i < 8; i++)
@@ -610,23 +655,20 @@ int polarmag(
                     originMag   = (magnitude[i]);
                     channel     = i;
                 }
+                
             }
-
+            
+            averageMag = averageMag / 8;
+            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
+            
         }
-    
-    averageMag = averageMag / 8;
-    
-    FILE * dataFile ;
-    char dataFileName[50] = "";
-        
-    strcat(dataFileName,"diff_mag.txt");
-    
-    dataFile = fopen(dataFileName, "a");
-    
-    fprintf(dataFile,"%ld %ld %f %f %f %d %f  %f \n",[xOpt integerValue], (long)[yOpt integerValue],averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
     
     fclose(dataFile);
     
+    
+    RELEASE_OBJECT(lightAlphaLine);
+    RELEASE_OBJECT(lightAlphaImage);
+
     return 0;
 
              
