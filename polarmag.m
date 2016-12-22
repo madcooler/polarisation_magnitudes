@@ -145,11 +145,11 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
             :   lightAlphaLine
             ];
 
-        [ ART_GLOBAL_REPORTER beginAction
-            :   "extracting pixel information at location ( %ld | %ld ):\n"
-            ,   xPos
-            ,   yPos
-            ];
+//        [ ART_GLOBAL_REPORTER beginAction
+//            :   "extracting pixel information at location ( %ld | %ld ):\n"
+//            ,   xPos
+//            ,   yPos
+//            ];
 
         ArLightAlpha  * value =
             lightAlphaLine->data[ xPos ];
@@ -163,7 +163,7 @@ if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
         
         arstokesvector_free(art_gv, sv);
         
-        [ ART_GLOBAL_REPORTER endAction ];
+//        [ ART_GLOBAL_REPORTER endAction ];
     }
     else
     {
@@ -510,7 +510,7 @@ int polarmag(
     id  xOpt =
         [ INTEGER_OPTION
             :   "x"
-            :   "xstart"
+            :   "xs"
             :   "<x coord>"
             :   "x start pixel"
             ];
@@ -518,7 +518,7 @@ int polarmag(
     id  xEndOpt =
         [ INTEGER_OPTION
             :   "xend"
-            :   "xend"
+            :   "xe"
             :   "<x coord>"
             :   "x end pixel"
             ];
@@ -527,7 +527,7 @@ int polarmag(
     id  yOpt =
         [ INTEGER_OPTION
             :   "ystart"
-            :   "ystart"
+            :   "ys"
             :   "<y coord>"
             :   "y start pixel"
             ];
@@ -535,7 +535,7 @@ int polarmag(
     id  yEndOpt =
         [ INTEGER_OPTION
             :   "yend"
-            :   "yend"
+            :   "ye"
             :   "<y coord>"
             :   "x end pixel"
             ];
@@ -544,7 +544,7 @@ int polarmag(
     id  stepOpt =
         [ INTEGER_OPTION
             :   "step"
-            :   "step"
+            :   "s"
             :   "<step>"
             :   "sampling step"
             ];
@@ -553,7 +553,7 @@ int polarmag(
     ART_SINGLE_INPUT_FILE_APPLICATION_STARTUP(
         "polarisation_difference_imageprobe",
         "ART raw & colourspace image probe utility",
-        "polarmag <ART image(Polarised)> <ART image> -x <x coord> -y <y coord>"
+        "polarmag <ART image(Polarised)> <ART image> -xs <x start coord> -xe <x end coord> -ys <y startcoord> -ye <y end coord> -s <sampling step>"
         );
 
     if ( ! ( [ xOpt hasBeenSpecified ] && [ yOpt hasBeenSpecified ] ) )
@@ -575,6 +575,14 @@ int polarmag(
             ];
 
     IVec2D size = [ inputFileImage size ];
+    
+    [ ART_GLOBAL_REPORTER beginTimedAction
+        :   "reading ART input image %s of size %d x %d"
+        ,   inputFileImage_p
+        ,   XC( size )
+        ,   YC( size )
+        ];
+
 
     [ ART_GLOBAL_REPORTER beginTimedAction
         :   "reading ART input image %s of size %d x %d"
