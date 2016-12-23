@@ -56,11 +56,11 @@ void getIntensity(
 void readFile(
     ART_GV                  *  art_gv,
     ArnFileImage            *  inputFileImage,
-    ArnPlainImage           *  lightAlphaImage,
+//    ArnPlainImage           *  lightAlphaImage,
     ArnLightAlphaImage      *  lightAlphaLine,
-    IVec2D                     size,
+//    IVec2D                     size,
     int                        xPos,
-    int                        yPos,
+//    int                        yPos,
     double                  *  valueI
     )
 
@@ -68,24 +68,6 @@ void readFile(
 
     if ( [ inputFileImage dataImageClass ] == [ ArfARTRAW class ] )
     {
-        
-        
-        [ inputFileImage getPlainImage
-            :   IPNT2D( 0, 0 )
-            :   lightAlphaImage
-            ];
-
-        [ lightAlphaImage getPlainImage
-            :   IPNT2D( 0, yPos )
-            :   lightAlphaLine
-            ];
-
-//        [ ART_GLOBAL_REPORTER beginAction
-//            :   "extracting pixel information at location ( %ld | %ld ):\n"
-//            ,   xPos
-//            ,   yPos
-//            ];
-        
         
         arlightalpha_l_to_sv(art_gv, lightAlphaLine->data[ xPos ], sv);
         
@@ -225,6 +207,19 @@ int polarmag(
                 :   IVEC2D(XC(size),1)
                 ];
     
+    ArnPlainImage  * lightAlphaImage_p =
+            [ ALLOC_OBJECT(ArnLightAlphaImage)
+                initWithSize
+                :   size
+                ];
+
+    ArnLightAlphaImage  * lightAlphaLine_p =
+            [ ALLOC_OBJECT(ArnLightAlphaImage)
+                initWithSize
+                :   IVEC2D(XC(size),1)
+                ];
+
+    
     double averageMag = 0;
     
     FILE * dataFile ;
@@ -241,15 +236,40 @@ int polarmag(
     
     sv = arstokesvector_alloc(art_gv);
     
-    for(int k = xs; k < xe; k = k + step)
-        for(int l = ys ; l < ye; l = l + step)
-    
-//    for(int k = 250 ; k < XC( size ); k = k + step)
+    //    for(int k = 250 ; k < XC( size ); k = k + step)
 //        for(int l = 250 ; l < XC( size ); l = l + step)
+    
+    [ inputFileImage getPlainImage
+            :   IPNT2D( 0, 0 )
+            :   lightAlphaImage
+            ];
+    
+    [ inputFileImage_p getPlainImage
+            :   IPNT2D( 0, 0 )
+            :   lightAlphaImage_p
+            ];
+    double maxMagArray[xe-xs][ye-ys];
+    double averageMagArray[xe-xs][ye-ys];
+    
+    for(int l = ys ; l < ye; l = l + step)
+    {
+        
+        [ lightAlphaImage getPlainImage
+            :   IPNT2D( 0, l )
+            :   lightAlphaLine
+            ];
+        
+        [ lightAlphaImage_p getPlainImage
+            :   IPNT2D( 0, l )
+            :   lightAlphaLine_p
+            ];
+
+
+        for( int k = xs; k < xe; k = k + step)
         {
             
-            readFile(art_gv, inputFileImage,   lightAlphaImage, lightAlphaLine, size,  k,   l , data  );
-            readFile(art_gv, inputFileImage_p, lightAlphaImage, lightAlphaLine, size,  k,   l , data_p);
+            readFile(art_gv, inputFileImage,   lightAlphaLine,   k, data  );
+            readFile(art_gv, inputFileImage_p, lightAlphaLine_p, k, data_p);
 
             averageMag = 0;
             maxMag     = 0;
@@ -275,10 +295,24 @@ int polarmag(
             }
             
             averageMag = averageMag / 8;
-//            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
-            fprintf(dataFile,"%d %d %f %f \n",k, l,averageMag, maxMag);
             
+            maxMagArray[k-xs][l-ys] = maxMag;
+            averageMagArray[k-xs][l-ys]  = averageMag;
+            
+//            printf("%d %d %f %f \n",k, l,averageMag, maxMag);
         }
+    }
+    
+    
+    for(int k = xs; k < xe; k = k + step)
+        for(int l = ys ; l < ye; l = l + step)
+    {
+        fprintf(dataFile,"%d %d %f %f \n",k, l,averageMagArray[k-xs][l-ys], maxMagArray[k-xs][l-ys]);
+        //            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
+        
+    }
+    
+    
     
     fclose(dataFile);
     
