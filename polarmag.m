@@ -28,6 +28,9 @@ double originMag = 0;
 
 int    channel = -1;
 
+ArStokesVectorSample * sv_temp [ 8 ];
+
+ArStokesVector * sv;
 
 void getIntensity(
     ART_GV          * art_gv,
@@ -35,17 +38,18 @@ void getIntensity(
     double          * valueI
 )
 {
-    ArStokesVectorSample * sv_temp [ 8 ];
-
+    
     for(int j =0; j < 8; j++)
     {
-        sv_temp[j] = arstokesvectorsample_alloc(art_gv);
-                
+//        arstokesvectorsample_dddd_init_sv(art_gv, 0, 0, 0, 0, sv_temp[j]) ;
+        
         arstokesvector_sv_sample_at_wavelength_svs(art_gv, sv, 380.0 NM + j * 40 NM, sv_temp[j]);
 
-        ArSpectralSample spectralSampleI = ARSTOKESVECTORSAMPLE_SV_I(*sv_temp[j], 0);
+//        ArSpectralSample spectralSampleI = ARSTOKESVECTORSAMPLE_SV_I(*sv_temp[j], 0);
         
-        valueI[j] = C1_C_PRINTF(SS_C(spectralSampleI));
+        valueI[j] = C1_C_PRINTF(SS_C(ARSTOKESVECTORSAMPLE_SV_I(*sv_temp[j], 0)));
+        
+//        valueI[j] = C1_C_PRINTF(SS_C(spectralSampleI));
     }
 }
 
@@ -81,18 +85,12 @@ void readFile(
 //            ,   xPos
 //            ,   yPos
 //            ];
-
-        ArLightAlpha  * value =
-            lightAlphaLine->data[ xPos ];
-
         
-        ArStokesVector * sv = arstokesvector_alloc(art_gv);
-
-        arlightalpha_l_to_sv(art_gv, value, sv);
+        
+        arlightalpha_l_to_sv(art_gv, lightAlphaLine->data[ xPos ], sv);
         
         getIntensity(art_gv,sv,valueI);
         
-        arstokesvector_free(art_gv, sv);
         
 //        [ ART_GLOBAL_REPORTER endAction ];
     }
@@ -157,7 +155,7 @@ int polarmag(
 
     ART_SINGLE_INPUT_FILE_APPLICATION_STARTUP(
         "polarisation_difference_imageprobe",
-        "ART raw & colourspace image probe utility",
+        "ART raw & colourspace image difference utility",
         "polarmag <ART image(Polarised)> <ART image> -xs <x start coord> -xe <x end coord> -ys <y startcoord> -ye <y end coord> -s <sampling step>"
         );
 
@@ -236,7 +234,12 @@ int polarmag(
     
     dataFile = fopen(dataFileName, "w");
     
+    for(int j =0; j < 8; j++)
+    {
+        sv_temp[j] = arstokesvectorsample_alloc(art_gv);
+    }
     
+    sv = arstokesvector_alloc(art_gv);
     
     for(int k = xs; k < xe; k = k + step)
         for(int l = ys ; l < ye; l = l + step)
@@ -272,13 +275,15 @@ int polarmag(
             }
             
             averageMag = averageMag / 8;
-            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
+//            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
+            fprintf(dataFile,"%d %d %f %f \n",k, l,averageMag, maxMag);
             
         }
     
     fclose(dataFile);
     
-    
+    arstokesvector_free(art_gv, sv);
+
     RELEASE_OBJECT(lightAlphaLine);
     RELEASE_OBJECT(lightAlphaImage);
 
