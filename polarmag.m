@@ -251,6 +251,10 @@ int polarmag(
     double maxMagArray[xe-xs][ye-ys];
     double averageMagArray[xe-xs][ye-ys];
     
+    double all_intensity_p;
+    
+    double all_intensity;
+    
     for(int l = ys ; l < ye; l = l + step)
     {
         
@@ -276,6 +280,9 @@ int polarmag(
             originMag  = 0;
             channel    = 0;
             
+            all_intensity_p = 0;
+            all_intensity   = 0;
+            
             double magnitude[8];
             for (int i = 0; i < 8; i++)
             {
@@ -291,7 +298,8 @@ int polarmag(
                     originMag   = (magnitude[i]);
                     channel     = i;
                 }
-                
+                all_intensity  += data[i];
+                all_intensity_p+= data_p[i];
             }
             
             averageMag = averageMag / 8;
@@ -300,17 +308,32 @@ int polarmag(
             averageMagArray[k-xs][l-ys]  = averageMag;
             
 //            printf("%d %d %f %f \n",k, l,averageMag, maxMag);
+
+            // print the columm, row number and difference magnitude.
+            fprintf(dataFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %d\n",
+                    k,
+                    l,
+                    averageMag,
+                    maxMag,
+                    all_intensity_p,
+                    all_intensity,
+                    data_p[7],data[7],
+                    data_p[5],data[5],
+                    data_p[3],data[3],
+                    data_p[0],data[0],
+                    channel );
+
         }
     }
     
-    
-    for(int k = xs; k < xe; k = k + step)
-        for(int l = ys ; l < ye; l = l + step)
-    {
-        fprintf(dataFile,"%d %d %f %f \n",k, l,averageMagArray[k-xs][l-ys], maxMagArray[k-xs][l-ys]);
-        //            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
-        
-    }
+//    
+//    for(int k = xs; k < xe; k = k + step)
+//        for(int l = ys ; l < ye; l = l + step)
+//    {
+//        fprintf(dataFile,"%d %d %f %f \n",k, l,averageMagArray[k-xs][l-ys], maxMagArray[k-xs][l-ys]);
+//        //            fprintf(dataFile,"%d %d %f %f %f %d %f  %f \n",k, l,averageMag, maxMag, originMag, channel , data[channel], data_p[channel]);
+//        
+//    }
     
     
     
