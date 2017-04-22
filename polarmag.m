@@ -4,7 +4,7 @@
  
  @brief     This file is the main ART file for the imp project.
  
- @author    Chi Wang (chi@cgg.mff.cuni.cz), Lukas Novosad (novosad@cgg.mff.cuni.cz)
+ @author    Chi Wang (chi@cgg.mff.cuni.cz)
  @date
  
  */
@@ -154,6 +154,7 @@ int polarmag(
         [ FILE_IMAGE
             :   inputFileName
             ];
+    
     ArnFileImage  * inputFileImage_p =
         [ FILE_IMAGE
             :   inputFileName_p
